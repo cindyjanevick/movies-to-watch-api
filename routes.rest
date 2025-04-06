@@ -1,0 +1,108 @@
+// Error handling 
+### Get all movies (should return 200 OK)
+GET http://localhost:3000/movies
+Content-Type: application/json
+
+
+### Get single movie (replace ID with an invalid one, should return 400 or 404)
+GET http://localhost:3000/movies/67ec23822403ed55b2a9833e
+Content-Type: application/json
+
+### Create a movie (should return 201 Created)
+POST http://localhost:3000/movies
+Content-Type: application/json
+
+{
+  "title": "Parasite",
+    "genre": "Thriller",
+    "releaseYear": 2019,
+    "duration": 132,
+    "description": "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+    "status": "completed",
+    "rating": 8.6
+}
+
+### Update a movie (invalid ID, should return 400)
+PUT http://localhost:3000/movies/67f1cda4f9369ad1bf486479
+Content-Type: application/json
+
+{
+  "title": "Parasite",
+    "genre": "Thriller",
+    "releaseYear": 2019,
+    "duration": 132,
+    "description": "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+    "status": "completed",
+    "rating": 9.5
+}
+
+### Delete a movie (invalid ID, should return 400)
+DELETE http://localhost:3000/movies/67f1cd7ff9369ad1bf486478
+Content-Type: application/json
+
+
+//Error handling for users
+### GET all users
+GET http://localhost:3000/users
+
+
+### GET a single user
+GET http://localhost:3000/users/67ec22ae2403ed55b2a98339
+
+
+### POST - Create a new user
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  
+  "username": "chris_jackson",
+  "password": "chrisjackson99",
+  "email": "chris.jackson@example.com",
+  "watchlists": ["Star Wars", "The Force Awakens", "Rogue One"]
+
+
+}
+
+
+### POST - Create a user with missing data
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "name": "Jane Doe"
+}
+# This should return a 400 status with an error indicating the missing fields.
+
+
+### PUT - Update an existing user
+PUT http://localhost:3000/users/67ec22f72403ed55b2a9833c
+Content-Type: application/json
+
+{
+  "username": "dramaKing",
+    "password": "$2a$10$xyz456",
+    "email": "dramaKing@example.com",
+    "watchlists": ["Parasite"]
+}
+
+
+### PUT - Update a user with an invalid ID
+PUT http://localhost:3000/users/67de05b92623bd733debd0dc3
+Content-Type: application/json
+
+{
+    "name": "Updated Name"
+}
+# This should return a 400 status with an error indicating the ID is invalid.
+
+
+### DELETE a user
+DELETE http://localhost:3000/users/67de05b92623bd733debd0dc
+# Replace {id} with a valid user ID. This will delete the user with the given ID.
+
+### DELETE a user with an invalid ID
+DELETE http://localhost:3000/users/67de05b92623bd733debd0dc3
+# This should return a 400 status with an error indicating the ID is invalid.
+
+
