@@ -8,33 +8,29 @@ const dotenv = require('dotenv').config();
 
 const passport = require('passport');
 const session = require('express-session');
-const GitHubStrategy = require('passport-github2').Strategy; 
-
+const GitHubStrategy = require('passport-github2').Strategy;
 
 const cors = require('cors');
 
-const allowedOrigins = ['http://localhost:3000', 'https://final-project-solo.onrender.com'];
-
+// CORS configuration
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: '*', // Allows all origins (you can replace '*' with a specific origin, e.g., 'http://localhost:3000')
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-
+console.log('CORS middleware triggered');
 
 const port = process.env.PORT || 3000;
 
-
+// Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+// Body parsing middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Session setup
 app.use(
   session({
     secret: 'secret',
@@ -42,56 +38,53 @@ app.use(
     saveUninitialized: true,
   })
 );
+
+// Passport setup
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Logging middleware
 app.use((req, res, next) => {
   console.log(`Route hit: ${req.method} ${req.url}`);
   next();
 });
 
-
-
-
+// Handling uncaught exceptions
 process.on('uncaughtException', (err, origin) => {
-  console.log(
-    process.stderr.fd,
-    `Caught exception: ${err}\n` + `Exception origin: ${origin}`
-  );
+  console.log(process.stderr.fd, `Caught exception: ${err}\nException origin: ${origin}`);
 });
 
-//import and use routes
+// Import and use routes
 app.use('/', require('./routes/index.js'));
 
+// GitHub OAuth setup with Passport
 passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: process.env.CALLBACK_URL
+    callbackURL: process.env.CALLBACK_URL,
 },
-function(accessToken, refreshToken, profile, done){
-    //User.findOrCreate({githubId: profile.id}, function (err, user){
+function(accessToken, refreshToken, profile, done) {
     return done(null, profile);
-    //}});
-}
-));
+}));
 
-passport.serializeUser((user, done)=> {
+passport.serializeUser((user, done) => {
     done(null, user);
 });
+
 passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
+// Routes for login and callback
 app.get('/', (req, res) => {
     res.send(
       req.session.user !== undefined
         ? `Logged in as ${req.session.user.displayName}`
         : 'Logged out'
     );
-  });
-  
-  app.get('/github/callback', passport.authenticate('github', { 
-    failureRedirect: '/api-docs', session: true 
-}), (req, res) => {
+});
+
+app.get('/github/callback', passport.authenticate('github', { failureRedirect: '/api-docs', session: true }), (req, res) => {
     console.log("GitHub Authentication Successful");
     console.log("User Data from Passport:", req.user);
     
@@ -102,11 +95,13 @@ app.get('/', (req, res) => {
     res.redirect('/');  // Redirect to home
 });
 
+// Initialize MongoDB and start the server
 mongodb.initDb((err) => {
-    if (err){
+    if (err) {
         console.log(err);
-    }
-    else {
-        app.listen(port, () => {console.log(`Database is listening and node Running on port ${port}`)});
+    } else {
+        app.listen(port, () => {
+            console.log(`Database is listening and node Running on port ${port}`);
+        });
     }
 });

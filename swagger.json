@@ -8,7 +8,7 @@
   "host": "final-project-solo.onrender.com",
   "basePath": "/",
   "schemes": [
-    "http"
+    "https"
   ],
   "paths": {
     "/movies/": {
