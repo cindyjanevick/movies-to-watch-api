@@ -13,6 +13,22 @@ const GitHubStrategy = require('passport-github2').Strategy;
 
 const cors = require('cors');
 
+const allowedOrigins = ['http://localhost:3000', 'https://final-project-solo.onrender.com'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+
 const port = process.env.PORT || 3000;
 
 
@@ -33,13 +49,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(cors());
-// app.use((req, res, next) => {
-//   res.setHeader('Access-Control-Allow-Origin', '*');
-//   next();
-// });
-// app.use(cors({ methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'] }));
-// app.use(cors({ origin: '*' }));
+
+
 
 process.on('uncaughtException', (err, origin) => {
   console.log(
