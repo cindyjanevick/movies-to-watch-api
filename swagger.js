@@ -5,7 +5,7 @@ const doc = {
     title: "Movies to Watch Api",
     description: "Movies to Watch Api",
   },
-  host: "localhost:3000",
+  host: "https://final-project-solo.onrender.com",
   schemes: ["http"],
 };
 
