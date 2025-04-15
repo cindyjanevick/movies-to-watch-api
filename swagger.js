@@ -6,7 +6,7 @@ const doc = {
     description: "Movies to Watch Api",
   },
   host: "final-project-solo.onrender.com",
-  schemes: ["http"],
+  schemes: ["https"],
 };
 
 const outputFile = "./swagger.json";
