@@ -96,81 +96,61 @@ validate.userRules = () => {
   ];
 };
 
-// Review Validation Rules
-validate.reviewRules = () => {
-  return [
-    body('movie_id')
-      .exists()
-      .withMessage('Movie ID is required')
-      .isMongoId()
-      .withMessage('Invalid Movie ID format'),
+// ✅ Review Validation
+validate.reviewRules = () => [
+  body('movie_id')
+    .exists().withMessage('Movie ID is required')
+    .custom(value => ObjectId.isValid(value)).withMessage('Invalid Movie ID'),
 
-    body('user_id')
-      .exists()
-      .withMessage('User ID is required')
-      .isMongoId()
-      .withMessage('Invalid User ID format'),
+  body('user_id')
+    .exists().withMessage('User ID is required')
+    .custom(value => ObjectId.isValid(value)).withMessage('Invalid User ID'),
 
-    body('title')
-      .exists({ checkFalsy: true })
-      .withMessage('Review text is required')
-      .isString()
-      .withMessage('Review text must be a string')
-      .isLength({ min: 1 })
-      .withMessage('Review text cannot be empty'),
+  body('title')
+    .exists({ checkFalsy: true }).withMessage('Review title is required')
+    .isString().withMessage('Review title must be a string'),
 
-    body('comment')
-    .exists()
-    .withMessage('comment is required')
-    .isString(),
+  body('comment')
+    .exists().withMessage('Comment is required')
+    .isString().withMessage('Comment must be a string'),
 
-    body('rating')
-      .exists()
-      .withMessage('Rating is required')
-      .isFloat({ min: 1, max: 10 })
-      .withMessage('Rating must be a number between 1 and 10'),
-  ];
-};
-// Watchlist Validation Rules
-validate.watchlistRules = () => {
-  return [
-    body('name')
-      .exists({ checkFalsy: true })
-      .withMessage('Watchlist name is required')
-      .isString()
-      .withMessage('Watchlist name must be a string'),
+  body('rating')
+    .exists().withMessage('Rating is required')
+    .isFloat({ min: 1, max: 10 }).withMessage('Rating must be between 1 and 10')
+];
 
-    body('movies')
-      .optional()
-      .isArray()
-      .withMessage('Movies must be an array')
-      .bail()
-      .custom((movies) => {
-        if (movies && movies.length > 0) {
-          for (let i = 0; i < movies.length; i++) {
-            if (!movies[i].movieId || !movies[i].status) {
-              throw new Error('Each movie must have a movieId and status');
-            }
-            if (!['watching', 'planToWatch', 'completed', 'onHold', 'dropped'].includes(movies[i].status)) {
-              throw new Error('Status must be one of "watching", "planToWatch", "completed", "onHold", or "dropped"');
-            }
-            if (!ObjectId.isValid(movies[i].movieId)) {
-              throw new Error('Each movieId must be a valid Mongo ID');
-            }
-          }
+// ✅ Watchlist Validation
+validate.watchlistRules = () => [
+  body('name')
+    .exists({ checkFalsy: true }).withMessage('Watchlist name is required')
+    .isString().withMessage('Watchlist name must be a string'),
+
+  body('movies')
+    .optional()
+    .isArray().withMessage('Movies must be an array')
+    .custom((movies) => {
+      for (const movie of movies) {
+        if (!movie.movieId || !movie.status) {
+          throw new Error('Each movie must have a movieId and status');
         }
-        return true;
-      }),
-  ];
-};
+        if (!['watching', 'planToWatch', 'completed', 'onHold', 'dropped'].includes(movie.status)) {
+          throw new Error(`Invalid movie status: ${movie.status}`);
+        }
+        if (!ObjectId.isValid(movie.movieId)) {
+          throw new Error('Each movieId must be a valid MongoDB ID');
+        }
+      }
+      return true;
+    })
+];
 
-// Shared Validation Result Checker
+// ✅ Shared Validation Result Middleware
 validate.checkData = (req, res, next) => {
-  let errors = validationResult(req);
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      errors: errors.array().map(err => err.msg),
+      errors: errors.array().map(err => err.msg)
     });
   }
   next();

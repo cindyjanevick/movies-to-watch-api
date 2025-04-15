@@ -38,7 +38,7 @@ const getReviewById = async (req, res) => {
 const createReview = async (req, res) => {
   try {
     // Validate the review data
-    await reviewRules.validateAsync(req.body);
+    // await reviewRules.validateAsync(req.body);
 
     const review = {
       user_id: new ObjectId(req.body.user_id),
@@ -63,7 +63,7 @@ const createReview = async (req, res) => {
 // Update an existing review by ID
 const updateReview = async (req, res) => {
   try {
-    await reviewRules.validateAsync(req.body);
+    // await reviewRules.validateAsync(req.body);
 
     const reviewId = req.params.id;
     if (!ObjectId.isValid(reviewId)) {
