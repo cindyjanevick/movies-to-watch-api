@@ -38,20 +38,27 @@ const getSingle = async (req, res) => {
 // Create a new review
 const createReview = async (req, res) => {
   const { movieId, rating, comment } = req.body;
-  const userId = req.session.user_id; // Assuming user is authenticated and user_id is stored in session
+  const userId = req.session.user_id;
 
-  // Validate input
-  if (!ObjectId.isValid(movieId)) {
-    return res.status(400).json({ error: 'Invalid movieId format' });
+  if (!userId || !ObjectId.isValid(userId)) {
+    return res.status(401).json({ error: 'User not authenticated or invalid session ID' });
+  }
+
+  if (!movieId || !ObjectId.isValid(movieId)) {
+    return res.status(400).json({ error: 'Invalid or missing movieId' });
   }
 
   if (!rating || !comment) {
     return res.status(400).json({ error: 'Rating and comment are required' });
   }
 
-  if (rating < 1 || rating > 10) {
-    return res.status(400).json({ error: 'Rating must be between 1 and 10' });
+  if (typeof rating !== 'number' || rating < 1 || rating > 10) {
+    return res.status(400).json({ error: 'Rating must be a number between 1 and 10' });
   }
+
+  
+
+
 
   const review = {
     user_id: new ObjectId(userId), // Using the user_id from session
