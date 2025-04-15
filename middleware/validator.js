@@ -131,16 +131,9 @@ validate.reviewRules = () => {
       .withMessage('Rating must be a number between 1 and 10'),
   ];
 };
-
 // Watchlist Validation Rules
 validate.watchlistRules = () => {
   return [
-    body('userId')
-      .exists()
-      .withMessage('User ID is required')
-      .isMongoId()
-      .withMessage('User ID must be a valid Mongo ID'),
-
     body('name')
       .exists({ checkFalsy: true })
       .withMessage('Watchlist name is required')
@@ -150,21 +143,24 @@ validate.watchlistRules = () => {
     body('movies')
       .optional()
       .isArray()
-      .withMessage('Movies must be an array'),
-
-    body('movies.*.movieId')
-      .if(body('movies').exists())
-      .exists()
-      .withMessage('Each movie must have a movieId')
-      .isMongoId()
-      .withMessage('movieId must be a valid Mongo ID'),
-
-    body('movies.*.status')
-      .if(body('movies').exists())
-      .exists()
-      .withMessage('Each movie must have a status')
-      .isIn(['watching', 'planToWatch', 'completed', 'onHold', 'dropped'])
-      .withMessage('Status must be one of "watching", "planToWatch", "completed", "onHold", or "dropped"'),
+      .withMessage('Movies must be an array')
+      .bail()
+      .custom((movies) => {
+        if (movies && movies.length > 0) {
+          for (let i = 0; i < movies.length; i++) {
+            if (!movies[i].movieId || !movies[i].status) {
+              throw new Error('Each movie must have a movieId and status');
+            }
+            if (!['watching', 'planToWatch', 'completed', 'onHold', 'dropped'].includes(movies[i].status)) {
+              throw new Error('Status must be one of "watching", "planToWatch", "completed", "onHold", or "dropped"');
+            }
+            if (!ObjectId.isValid(movies[i].movieId)) {
+              throw new Error('Each movieId must be a valid Mongo ID');
+            }
+          }
+        }
+        return true;
+      }),
   ];
 };
 

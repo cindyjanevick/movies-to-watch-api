@@ -322,6 +322,7 @@
             "description": "Get all watchlists",
             "responses": {
               "200": { "description": "OK" },
+              "401": { "description": "Unauthorized - not logged in" },
               "500": { "description": "Internal Server Error" }
             }
           },
@@ -330,24 +331,41 @@
             "description": "Create a watchlist",
             "parameters": [
               {
-                "name": "body",
                 "in": "body",
+                "name": "body",
+                "required": true,
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "user_id": { "example": "67fd2780e5c52f20916c2cc1" },
-                    "name": {"example": "Favorites to rewatch"},
-                    "movies": { "example": 
-                                [{"movie_id" : "67f24761070e027ef11d2805",
-                                "status": "Watched"} ] }
-                   
-                  }
+                    "name": {
+                      "type": "string",
+                      "example": "Favorites to rewatch"
+                    },
+                    "movies": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "movieId": {
+                            "type": "string",
+                            "example": "661e7f29a8d89a2a431c4a01"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "watching"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": ["name"]
                 }
               }
             ],
             "responses": {
-              "201": { "description": "Created" },
+              "201": { "description": "Watchlist Created" },
               "400": {"description": "Invalid input data"},
+              "401": {"description": "Unauthorized"},
               "500": { "description": "Internal Server Error" }
             }
           }
@@ -362,7 +380,7 @@
             "responses": {
               "200": { "description": "OK" },
               "400": { "description": "Bad Request" },
-              "404": { "description": "Not Found" },
+              "404": { "description": "Watchlist Not Found" },
               "500": { "description": "Internal Server Error" }
             }
           },
@@ -372,16 +390,32 @@
             "parameters": [
               { "name": "id", "in": "path", "required": true, "type": "string" },
               {
-                "name": "body",
                 "in": "body",
+                "name": "body",
+                "required": true,
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "user_id": { "example": "67fd2780e5c52f20916c2cc1" },
-                    "name": {"example": "Favorites to rewatch"},
-                    "movies": { "example": 
-                                [{"movie_id" : "67f24761070e027ef11d2805",
-                                "status": "Watched"} ] }
+                    "name": {
+                      "type": "string",
+                      "example": "Updated Watchlist Name"
+                    },
+                    "movies": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "movieId": {
+                            "type": "string",
+                            "example": "661e7f29a8d89a2a431c4a01"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "completed"
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -389,6 +423,7 @@
             "responses": {
               "200": { "description": "OK" },
               "400": { "description": "Bad Request" },
+              "401": { "description": "Unauthorized"},
               "404": { "description": "Not Found" },
               "500": { "description": "Internal Server Error" }
             }
@@ -400,8 +435,9 @@
               { "name": "id", "in": "path", "required": true, "type": "string" }
             ],
             "responses": {
-              "204": { "description": "No Content" },
+              "204": { "description": "Watchlist deleted" },
               "400": { "description": "Bad Request" },
+              "401": { "description": "Unauthorized"},
               "404": { "description": "Not Found" },
               "500": { "description": "Internal Server Error" }
             }

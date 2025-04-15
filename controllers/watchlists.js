@@ -39,10 +39,10 @@ const getSingle = async (req, res) => {
 const createWatchlist = async (req, res) => {
   try {
     const watchlist = {
-      user_id: new ObjectId(req.body.user_id),
+      userId: new ObjectId(req.session.user_id),
       name: req.body.name,
       movies: req.body.movies.map((movie) => ({
-        movie_id: new ObjectId(movie.movie_id),
+        movieId: new ObjectId(movie.movieId),
         status: movie.status
       }))
     };
@@ -69,11 +69,11 @@ const updateWatchlist = async (req, res) => {
     }
 
     const watchlist = {
-      user_id: new ObjectId(req.body.user_id),
-      name: req.body.name,
-      movies: req.body.movies.map((movie) => ({
-        movie_id: new ObjectId(movie.movie_id),
-        status: movie.status
+        userId: new ObjectId(req.session.user_id),
+        name: req.body.name,
+        movies: req.body.movies.map((movie) => ({
+          movieId: new ObjectId(movie.movieId),
+          status: movie.status
       }))
     };
 

@@ -105,4 +105,87 @@ DELETE http://localhost:3000/users/67de05b92623bd733debd0dc
 DELETE http://localhost:3000/users/67de05b92623bd733debd0dc3
 # This should return a 400 status with an error indicating the ID is invalid.
 
+### ------------------------
+### WATCHLIST ROUTES
+### ------------------------
+
+### Get all watchlists
+GET http://localhost:3000/watchlists
+Content-Type: application/json
+
+### Get a watchlist by ID
+GET http://localhost:3000/watchlists/67fe0b07ea2e7e16c9d4420c
+Content-Type: application/json
+
+### Create a new watchlist
+POST http://localhost:3000/watchlists
+Content-Type: application/json
+
+{
+  "name": "My Movie Watchlist",
+  "movies": [
+    {
+      "movieId": "661e7f29a8d89a2a431c4a01",
+      "status": "watching"
+    },
+    {
+      "movieId": "661e7f29a8d89a2a431c4a02",
+      "status": "planToWatch"
+    }
+  ]
+}
+
+### Update a watchlist by ID
+PUT http://localhost:3000/watchlists/67fe0b07ea2e7e16c9d4420c
+Content-Type: application/json
+
+{
+  "name": "Updated Watchlist Name",
+  "movies": [
+    {
+      "movieId": "661e7f29a8d89a2a431c4a01",
+      "status": "completed"
+    }
+  ]
+}
+
+### Delete a watchlist
+DELETE http://localhost:3000/watchlists/67fe0b07ea2e7e16c9d4420c
+Content-Type: application/json
+
+
+### ------------------------
+### REVIEW ROUTES
+### ------------------------
+
+### Get all reviews
+GET http://localhost:3000/reviews
+Content-Type: application/json
+
+### Get a review by ID
+GET http://localhost:3000/reviews/661e7f29a8d89a2a431c4a01
+Content-Type: application/json
+
+### Create a new review
+POST http://localhost:3000/reviews
+Content-Type: application/json
+
+{
+  "movieId": "661e7f29a8d89a2a431c4a01",
+  "rating": 4,
+  "comment": "Great movie with a strong plot."
+}
+
+### Update a review by ID
+PUT http://localhost:3000/reviews/661e7f29a8d89a2a431c4a01
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "comment": "Actually... a masterpiece!"
+}
+
+### Delete a review by ID
+DELETE http://localhost:3000/reviews/661e7f29a8d89a2a431c4a01
+Content-Type: application/json
 
