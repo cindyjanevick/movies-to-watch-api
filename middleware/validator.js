@@ -96,6 +96,78 @@ validate.userRules = () => {
   ];
 };
 
+// Review Validation Rules
+validate.reviewRules = () => {
+  return [
+    body('movie_id')
+      .exists()
+      .withMessage('Movie ID is required')
+      .isMongoId()
+      .withMessage('Invalid Movie ID format'),
+
+    body('user_id')
+      .exists()
+      .withMessage('User ID is required')
+      .isMongoId()
+      .withMessage('Invalid User ID format'),
+
+    body('title')
+      .exists({ checkFalsy: true })
+      .withMessage('Review text is required')
+      .isString()
+      .withMessage('Review text must be a string')
+      .isLength({ min: 1 })
+      .withMessage('Review text cannot be empty'),
+
+    body('comment')
+    .exists()
+    .withMessage('comment is required')
+    .isString(),
+
+    body('rating')
+      .exists()
+      .withMessage('Rating is required')
+      .isFloat({ min: 1, max: 10 })
+      .withMessage('Rating must be a number between 1 and 10'),
+  ];
+};
+
+// Watchlist Validation Rules
+validate.watchlistRules = () => {
+  return [
+    body('userId')
+      .exists()
+      .withMessage('User ID is required')
+      .isMongoId()
+      .withMessage('User ID must be a valid Mongo ID'),
+
+    body('name')
+      .exists({ checkFalsy: true })
+      .withMessage('Watchlist name is required')
+      .isString()
+      .withMessage('Watchlist name must be a string'),
+
+    body('movies')
+      .optional()
+      .isArray()
+      .withMessage('Movies must be an array'),
+
+    body('movies.*.movieId')
+      .if(body('movies').exists())
+      .exists()
+      .withMessage('Each movie must have a movieId')
+      .isMongoId()
+      .withMessage('movieId must be a valid Mongo ID'),
+
+    body('movies.*.status')
+      .if(body('movies').exists())
+      .exists()
+      .withMessage('Each movie must have a status')
+      .isIn(['watching', 'planToWatch', 'completed', 'onHold', 'dropped'])
+      .withMessage('Status must be one of "watching", "planToWatch", "completed", "onHold", or "dropped"'),
+  ];
+};
+
 // Shared Validation Result Checker
 validate.checkData = (req, res, next) => {
   let errors = validationResult(req);
