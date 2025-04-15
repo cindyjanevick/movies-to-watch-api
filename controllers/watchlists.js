@@ -99,6 +99,7 @@ const updateWatchlist = async (req, res) => {
     const db = mongodb.getDatabase().db();
 
     const existingWatchlist = await db.collection('watchlists').findOne({ _id: new ObjectId(watchlistId) });
+    console.log('Existing Watchlist:', existingWatchlist);
 
     if (!existingWatchlist) {
       return res.status(404).json({ error: 'Watchlist not found' });
@@ -111,12 +112,10 @@ const updateWatchlist = async (req, res) => {
     let updateOperation;
 
     if (remove) {
-      // ❌ REMOVE the movie from the watchlist's array
       updateOperation = {
         $pull: { movies: { movieId: new ObjectId(movieId) } }
       };
     } else {
-      // ✅ ADD the movie object (or update if it exists)
       updateOperation = {
         $addToSet: {
           movies: {
@@ -131,6 +130,7 @@ const updateWatchlist = async (req, res) => {
       { _id: new ObjectId(watchlistId) },
       updateOperation
     );
+    console.log('Update Response:', response);
 
     if (response.modifiedCount > 0) {
       res.status(200).json({ message: 'Watchlist updated successfully' });
@@ -141,6 +141,7 @@ const updateWatchlist = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while updating the watchlist', details: error.message });
   }
 };
+
 
 // Delete a watchlist
 const deleteWatchlist = async (req, res) => {
