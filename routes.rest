@@ -163,7 +163,7 @@ GET http://localhost:3000/reviews
 Content-Type: application/json
 
 ### Get a review by ID
-GET http://localhost:3000/reviews/661e7f29a8d89a2a431c4a01
+GET http://localhost:3000/reviews/67fd2780e5c52f20916c2cc1
 Content-Type: application/json
 
 ### Create a new review
