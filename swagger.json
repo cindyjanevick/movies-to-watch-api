@@ -316,7 +316,16 @@
         }
       }
     },
-    "/watchlists/": {
+    "/watchlists": {
+  "get": {
+    "tags": ["Watchlists"],
+    "description": "Get all watchlists",
+    "responses": {
+      "200": { "description": "OK" },
+      "401": { "description": "Unauthorized - not logged in" },
+      "500": { "description": "Internal Server Error" }
+    }
+  },
   "post": {
     "tags": ["Watchlists"],
     "description": "Create a watchlist",
@@ -339,7 +348,6 @@
                 "properties": {
                   "movieId": {
                     "type": "string",
-                    "pattern": "^[a-fA-F0-9]{24}$",  
                     "example": "661e7f29a8d89a2a431c4a01"
                   },
                   "status": {
@@ -350,97 +358,107 @@
               }
             }
           },
-          "required": ["name", "movies"]
+          "required": ["name"]
         }
       }
     ],
     "responses": {
       "201": { "description": "Watchlist Created" },
-      "400": {"description": "Invalid input data"},
-      "401": {"description": "Unauthorized"},
+      "400": { "description": "Invalid input data" },
+      "401": { "description": "Unauthorized" },
       "500": { "description": "Internal Server Error" }
     }
   }
-},
+    },
     "/watchlists/{id}": {
-          "get": {
-            "tags": ["Watchlists"],
-            "description": "Get a watchlist by ID",
-            "parameters": [
-              { "name": "id", "in": "path", "required": true, "type": "string" }
-            ],
-            "responses": {
-              "200": { "description": "OK" },
-              "400": { "description": "Bad Request" },
-              "404": { "description": "Watchlist Not Found" },
-              "500": { "description": "Internal Server Error" }
-            }
+      "get": {
+        "tags": ["Watchlists"],
+        "description": "Get a watchlist by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": { "description": "OK" },
+          "400": { "description": "Bad Request" },
+          "404": { "description": "Watchlist Not Found" },
+          "500": { "description": "Internal Server Error" }
+        }
+      },
+      "put": {
+        "tags": ["Watchlists"],
+        "description": "Update a watchlist by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           },
-          "/watchlists/{id}": {
-  "put": {
-    "tags": ["Watchlists"],
-    "description": "Update a watchlist by ID",
-    "parameters": [
-      { "name": "id", "in": "path", "required": true, "type": "string" },
-      {
-        "in": "body",
-        "name": "body",
-        "required": true,
-        "schema": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "example": "Updated Watchlist Name"
-            },
-            "movies": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "movieId": {
-                    "type": "string",
-                    "pattern": "^[a-fA-F0-9]{24}$",  
-                    "example": "661e7f29a8d89a2a431c4a01"
-                  },
-                  "status": {
-                    "type": "string",
-                    "example": "completed"
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "Updated Watchlist Name"
+                },
+                "movies": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "movieId": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{24}$",
+                        "example": "661e7f29a8d89a2a431c4a01"
+                      },
+                      "status": {
+                        "type": "string",
+                        "example": "completed"
+                      }
+                    }
                   }
                 }
               }
             }
           }
+        ],
+        "responses": {
+          "200": { "description": "OK" },
+          "400": { "description": "Bad Request" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not Found" },
+          "500": { "description": "Internal Server Error" }
+        }
+      },
+      "delete": {
+        "tags": ["Watchlists"],
+        "description": "Delete a watchlist by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": { "description": "Watchlist deleted" },
+          "400": { "description": "Bad Request" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not Found" },
+          "500": { "description": "Internal Server Error" }
         }
       }
-    ],
-    "responses": {
-      "200": { "description": "OK" },
-      "400": { "description": "Bad Request" },
-      "401": { "description": "Unauthorized" },
-      "404": { "description": "Not Found" },
-      "500": { "description": "Internal Server Error" }
-    }
-  }
-},
-          "delete": {
-            "tags": ["Watchlists"],
-            "description": "Delete a watchlist by ID",
-            "parameters": [
-              { "name": "id", "in": "path", "required": true, "type": "string" }
-            ],
-            "responses": {
-              "204": { "description": "Watchlist deleted" },
-              "400": { "description": "Bad Request" },
-              "401": { "description": "Unauthorized"},
-              "404": { "description": "Not Found" },
-              "500": { "description": "Internal Server Error" }
-            }
-          }
     },
-
-
-
 
 
 
