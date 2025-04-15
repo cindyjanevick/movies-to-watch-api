@@ -394,72 +394,51 @@
         "tags": ["Watchlists"],
         "description": "Update a watchlist by ID",
         "parameters": [
-      {
-        "name": "id",
-        "in": "path",
-        "required": true,
-        "description": "ID of the watchlist to update",
-        "schema": {
-          "type": "string"
-        }
-      }
-    ],
-    "requestBody": {
-      "required": true,
-      "content": {
-        "application/json": {
-          "schema": {
-            "type": "object",
-            "required": ["name", "movies"],
-            "properties": {
-              "name": {
-                "type": "string",
-                "example": "My Updated Watchlist"
-              },
-              "movies": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["movieId", "status"],
-                  "properties": {
-                    "movieId": {
-                      "type": "string",
-                      "example": "660213e98d490282a67d8e92"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": ["watching", "planToWatch", "completed"],
-                      "example": "completed"
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "Updated Watchlist Name"
+                },
+                "movies": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "movieId": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{24}$",
+                        "example": "661e7f29a8d89a2a431c4a01"
+                      },
+                      "status": {
+                        "type": "string",
+                        "example": "completed"
+                      }
                     }
                   }
                 }
               }
             }
           }
+        ],
+        "responses": {
+          "200": { "description": "OK" },
+          "400": { "description": "Bad Request" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Not Found" },
+          "500": { "description": "Internal Server Error" }
         }
-      }
-    },
-    "responses": {
-      "200": {
-        "description": "Watchlist updated successfully"
-      },
-      "400": {
-        "description": "Invalid input"
-      },
-      "403": {
-        "description": "Forbidden – You can only update your own watchlist"
-      },
-      "404": {
-        "description": "Watchlist not found"
-      },
-      "500": {
-        "description": "Internal server error"
-      }
-    },
-    "security": [
-      {
-        "cookieAuth": []
-        }]
       },
       "delete": {
         "tags": ["Watchlists"],
