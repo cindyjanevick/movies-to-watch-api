@@ -79,67 +79,44 @@ const createWatchlist = async (req, res) => {
 
 // Update an existing watchlist
 const updateWatchlist = async (req, res) => {
-  const watchlistId = req.params.id;
   const { name, movies } = req.body;
-  const userId = req.session.user_id;
-
-  // Validate request
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ error: errors.array() });
-  }
 
   if (!Array.isArray(movies) || movies.length === 0) {
     return res.status(400).json({ error: 'Movies array is required and cannot be empty' });
   }
 
   try {
-    const db = mongodb.getDatabase().db();
-
-    // Check that the watchlist exists and belongs to the logged-in user
-    const existingWatchlist = await db.collection('watchlists').findOne({ _id: new ObjectId(watchlistId) });
-
-    if (!existingWatchlist) {
-      return res.status(404).json({ error: 'Watchlist not found' });
-    }
-
-    if (existingWatchlist.user_id.toString() !== userId) {
-      return res.status(403).json({ error: 'You can only update your own watchlist' });
-    }
-
-    // Format the movies
     const formattedMovies = movies.map(movie => {
       if (!ObjectId.isValid(movie.movieId)) {
         throw new Error(`Invalid movieId format: ${movie.movieId}`);
       }
-
       return {
         movieId: new ObjectId(movie.movieId),
         status: movie.status
       };
     });
 
-    // Update the watchlist entirely (name and movies)
-    const updateResult = await db.collection('watchlists').updateOne(
-      { _id: new ObjectId(watchlistId) },
-      {
-        $set: {
-          name,
-          movies: formattedMovies
-        }
-      }
-    );
+    const watchlistId = new ObjectId(req.params.id);
 
-    if (updateResult.modifiedCount > 0) {
+    const updateDoc = {
+      $set: {
+        name,
+        movies: formattedMovies
+      }
+    };
+
+    const response = await mongodb.getDatabase().db().collection('watchlists').updateOne({ _id: watchlistId }, updateDoc);
+
+    if (response.modifiedCount > 0) {
       res.status(200).json({ message: 'Watchlist updated successfully' });
     } else {
-      res.status(200).json({ message: 'No changes made (data may be identical)' });
+      res.status(404).json({ message: 'Watchlist not found or no changes made' });
     }
-
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while updating the watchlist', details: error.message });
   }
 };
+
 
 
 // Delete a watchlist
