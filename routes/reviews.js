@@ -5,10 +5,10 @@ const validate = require('../middleware/validator');
 const { isAuthenticated } = require('../middleware/authenticate');
 
 // Get all reviews
-router.get('/', reviewController.getAllReviews);
+router.get('/', reviewController.getAll);
 
 // Get a single review by ID
-router.get('/:id', reviewController.getReviewById);
+router.get('/:id', reviewController.getSingle);
 
 // Create a new review (requires authentication)
 router.post('/', isAuthenticated, validate.reviewRules(), validate.checkData, reviewController.createReview);

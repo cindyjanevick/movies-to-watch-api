@@ -96,73 +96,81 @@ validate.userRules = () => {
   ];
 };
 
-// Review Validation Rules
-validate.reviewRules = () => {
-  return [
-    body('movie_id')
-      .exists()
-      .withMessage('Movie ID is required')
-      .isMongoId()
-      .withMessage('Invalid Movie ID format'),
-
-    body('user_id')
-      .exists()
-      .withMessage('User ID is required')
-      .isMongoId()
-      .withMessage('Invalid User ID format'),
-
-    body('title')
-      .exists({ checkFalsy: true })
-      .withMessage('Review text is required')
-      .isString()
-      .withMessage('Review text must be a string')
-      .isLength({ min: 1 })
-      .withMessage('Review text cannot be empty'),
-
-    body('comment')
-    .exists()
-    .withMessage('comment is required')
-    .isString(),
-
-    body('rating')
-      .exists()
-      .withMessage('Rating is required')
-      .isFloat({ min: 1, max: 10 })
-      .withMessage('Rating must be a number between 1 and 10'),
-  ];
-};
 // Watchlist Validation Rules
 validate.watchlistRules = () => {
   return [
     body('name')
       .exists({ checkFalsy: true })
-      .withMessage('Watchlist name is required')
+      .withMessage('Name is required')
       .isString()
-      .withMessage('Watchlist name must be a string'),
+      .withMessage('Name must be a string')
+      .isLength({ min: 1 })
+      .withMessage('Name cannot be empty'),
 
     body('movies')
-      .optional()
       .isArray()
       .withMessage('Movies must be an array')
-      .bail()
-      .custom((movies) => {
-        if (movies && movies.length > 0) {
-          for (let i = 0; i < movies.length; i++) {
-            if (!movies[i].movieId || !movies[i].status) {
-              throw new Error('Each movie must have a movieId and status');
-            }
-            if (!['watching', 'planToWatch', 'completed', 'onHold', 'dropped'].includes(movies[i].status)) {
-              throw new Error('Status must be one of "watching", "planToWatch", "completed", "onHold", or "dropped"');
-            }
-            if (!ObjectId.isValid(movies[i].movieId)) {
-              throw new Error('Each movieId must be a valid Mongo ID');
-            }
+      .custom((value) => {
+        if (value.length === 0) {
+          throw new Error('Movies array cannot be empty');
+        }
+        value.forEach((movie) => {
+          if (!movie.movieId || !movie.status) {
+            throw new Error('Each movie must have movieId and status');
           }
+        });
+        return true;
+      })
+      .withMessage('Each movie object must have movieId and status'),
+
+    body('movies.*.movieId')
+      .exists()
+      .withMessage('Movie ID is required for each movie')
+      .isMongoId()
+      .withMessage('Each Movie ID must be a valid MongoDB ObjectId'),
+
+    body('movies.*.status')
+      .exists()
+      .withMessage('Status is required for each movie')
+      .isIn(['watching', 'planToWatch', 'completed'])
+      .withMessage('Status must be one of "watching", "planToWatch", or "completed"')
+  ];
+};
+
+// Review Validation Rules
+validate.reviewRules = () => {
+  return [
+    body('movieId')
+      .exists({ checkFalsy: true })
+      .withMessage('Movie ID is required')
+      .isMongoId()
+      .withMessage('Movie ID must be a valid MongoDB ObjectId'),
+
+    body('rating')
+      .exists()
+      .withMessage('Rating is required')
+      .isFloat({ min: 1, max: 10 })
+      .withMessage('Rating must be a number between 1 and 10')
+      .custom((value) => {
+        // Optional: Ensure no more than two decimal places
+        if (value.toString().split('.').length > 2) {
+          throw new Error('Rating can only have up to two decimal places');
         }
         return true;
       }),
+
+    body('comment')
+      .optional()
+      .isString()
+      .withMessage('Comment must be a string'),
+
+    body('status')
+      .optional()
+      .isIn(['watching', 'planToWatch', 'completed'])
+      .withMessage('Status must be one of "watching", "planToWatch", or "completed"')
   ];
 };
+
 
 // Shared Validation Result Checker
 validate.checkData = (req, res, next) => {

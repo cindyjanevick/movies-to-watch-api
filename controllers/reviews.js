@@ -1,34 +1,35 @@
 const mongodb = require('../data/database');
 const ObjectId = require('mongodb').ObjectId;
 
-
 // Get all reviews
-const getAllReviews = async (req, res) => {
+const getAll = async (req, res) => {
   try {
     const result = await mongodb.getDatabase().db().collection('reviews').find();
     const reviews = await result.toArray();
+    res.setHeader('Content-Type', 'application/json');
     res.status(200).json(reviews);
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while retrieving reviews', details: error.message });
   }
 };
 
-// Get a single review by ID
-const getReviewById = async (req, res) => {
+// Get single review by ID
+const getSingle = async (req, res) => {
+  const reviewId = req.params.id;
+
+  if (!ObjectId.isValid(reviewId)) {
+    return res.status(400).json({ error: 'Invalid Review ID format' });
+  }
+
   try {
-    const reviewId = req.params.id;
-    
-    if (!ObjectId.isValid(reviewId)) {
-      return res.status(400).json({ error: 'Invalid Review ID format' });
-    }
+    const result = await mongodb.getDatabase().db().collection('reviews').findOne({ _id: new ObjectId(reviewId) });
 
-    const review = await mongodb.getDatabase().db().collection('reviews').findOne({ _id: new ObjectId(reviewId) });
-
-    if (!review) {
+    if (!result) {
       return res.status(404).json({ error: 'Review not found' });
     }
 
-    res.status(200).json(review);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while retrieving the review', details: error.message });
   }
@@ -36,18 +37,31 @@ const getReviewById = async (req, res) => {
 
 // Create a new review
 const createReview = async (req, res) => {
+  const { movieId, rating, comment } = req.body;
+  const userId = req.session.user_id; // Assuming user is authenticated and user_id is stored in session
+
+  // Validate input
+  if (!ObjectId.isValid(movieId)) {
+    return res.status(400).json({ error: 'Invalid movieId format' });
+  }
+
+  if (!rating || !comment) {
+    return res.status(400).json({ error: 'Rating and comment are required' });
+  }
+
+  if (rating < 1 || rating > 10) {
+    return res.status(400).json({ error: 'Rating must be between 1 and 10' });
+  }
+
+  const review = {
+    user_id: new ObjectId(userId), // Using the user_id from session
+    movieId: new ObjectId(movieId),
+    rating,
+    comment,
+    createdAt: new Date()
+  };
+
   try {
-    // Validate the review data
-    // await reviewRules.validateAsync(req.body);
-
-    const review = {
-      user_id: new ObjectId(req.body.user_id),
-      movie_id: new ObjectId(req.body.movie_id),
-      title: req.body.title,
-      rating: req.body.rating,
-      comment: req.body.comment
-    };
-
     const response = await mongodb.getDatabase().db().collection('reviews').insertOne(review);
 
     if (response.acknowledged) {
@@ -60,25 +74,36 @@ const createReview = async (req, res) => {
   }
 };
 
-// Update an existing review by ID
+// Update a review
 const updateReview = async (req, res) => {
+  const reviewId = req.params.id;
+
+  if (!ObjectId.isValid(reviewId)) {
+    return res.status(400).json({ error: 'Invalid Review ID format' });
+  }
+
+  const { rating, comment } = req.body;
+
+  // Validate input
+  if (!rating || !comment) {
+    return res.status(400).json({ error: 'Rating and comment are required' });
+  }
+
+  if (rating < 1 || rating > 10) {
+    return res.status(400).json({ error: 'Rating must be between 1 and 10' });
+  }
+
+  const updatedReview = {
+    rating,
+    comment,
+    updatedAt: new Date()
+  };
+
   try {
-    // await reviewRules.validateAsync(req.body);
-
-    const reviewId = req.params.id;
-    if (!ObjectId.isValid(reviewId)) {
-      return res.status(400).json({ error: 'Invalid Review ID format' });
-    }
-
-    const review = {
-      user_id: new ObjectId(req.body.user_id),
-      movie_id: new ObjectId(req.body.movie_id),
-      title: req.body.title,
-      rating: req.body.rating,
-      comment: req.body.comment
-    };
-
-    const response = await mongodb.getDatabase().db().collection('reviews').replaceOne({ _id: new ObjectId(reviewId) }, review);
+    const response = await mongodb.getDatabase().db().collection('reviews').updateOne(
+      { _id: new ObjectId(reviewId) },
+      { $set: updatedReview }
+    );
 
     if (response.modifiedCount > 0) {
       res.status(200).json({ message: 'Review updated successfully' });
@@ -90,15 +115,15 @@ const updateReview = async (req, res) => {
   }
 };
 
-// Delete a review by ID
+// Delete a review
 const deleteReview = async (req, res) => {
+  const reviewId = req.params.id;
+
+  if (!ObjectId.isValid(reviewId)) {
+    return res.status(400).json({ error: 'Invalid Review ID format' });
+  }
+
   try {
-    const reviewId = req.params.id;
-
-    if (!ObjectId.isValid(reviewId)) {
-      return res.status(400).json({ error: 'Invalid Review ID format' });
-    }
-
     const response = await mongodb.getDatabase().db().collection('reviews').deleteOne({ _id: new ObjectId(reviewId) });
 
     if (response.deletedCount > 0) {
@@ -112,9 +137,9 @@ const deleteReview = async (req, res) => {
 };
 
 module.exports = {
-  getAllReviews,
-  getReviewById,
+  getAll,
+  getSingle,
   createReview,
   updateReview,
-  deleteReview,
+  deleteReview
 };
