@@ -12,7 +12,9 @@ router.use('/watchlists', require('./watchlists'));
 
 router.use('/reviews', require('./reviews'));
 
-router.get('/login', passport.authenticate('github'), (req,res)=>{});
+router.get('/login', passport.authenticate('github'), (req,res)=>{
+    res.send('Logged in');
+});
 
 
 router.get('/logout', function(req, res, next) {
