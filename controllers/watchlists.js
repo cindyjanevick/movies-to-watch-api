@@ -83,23 +83,24 @@ const updateWatchlist = async (req, res) => {
   const { movieId, status, remove } = req.body;
   const userId = req.session.user_id;
 
-  if (!ObjectId.isValid(watchlistId)) {
-    return res.status(400).json({ error: 'Invalid Watchlist ID format' });
+  // Validate request
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array() });
   }
 
-  if (!movieId || !ObjectId.isValid(movieId)) {
+  // Validate ObjectId format for movieId
+  if (!ObjectId.isValid(movieId)) {
     return res.status(400).json({ error: 'Invalid movieId format' });
   }
 
-  if (!remove && (!status || !['watching', 'planToWatch', 'completed'].includes(status))) {
-    return res.status(400).json({ error: 'A valid status is required when adding a movie' });
-  }
+  const movieObjectId = new ObjectId(movieId);
 
   try {
     const db = mongodb.getDatabase().db();
 
+    // Find the existing watchlist
     const existingWatchlist = await db.collection('watchlists').findOne({ _id: new ObjectId(watchlistId) });
-    console.log('Existing Watchlist:', existingWatchlist);
 
     if (!existingWatchlist) {
       return res.status(404).json({ error: 'Watchlist not found' });
@@ -112,14 +113,16 @@ const updateWatchlist = async (req, res) => {
     let updateOperation;
 
     if (remove) {
+      // Remove the movie from the watchlist's array
       updateOperation = {
-        $pull: { movies: { movieId: new ObjectId(movieId) } }
+        $pull: { movies: { movieId: movieObjectId } }
       };
     } else {
+      // Add or update the movie object in the watchlist
       updateOperation = {
         $addToSet: {
           movies: {
-            movieId: new ObjectId(movieId),
+            movieId: movieObjectId,
             status
           }
         }
@@ -130,7 +133,6 @@ const updateWatchlist = async (req, res) => {
       { _id: new ObjectId(watchlistId) },
       updateOperation
     );
-    console.log('Update Response:', response);
 
     if (response.modifiedCount > 0) {
       res.status(200).json({ message: 'Watchlist updated successfully' });
