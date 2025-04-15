@@ -61,7 +61,7 @@ const createWatchlist = async (req, res) => {
       name,
       user_id: new ObjectId(userId),
       movies: formattedMovies,
-      createdAt: new Date()
+      // createdAt: new Date()
     };
 
     const response = await mongodb.getDatabase().db().collection('watchlists').insertOne(watchlist);

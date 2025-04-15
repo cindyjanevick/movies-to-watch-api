@@ -65,7 +65,7 @@ const createReview = async (req, res) => {
     movieId: new ObjectId(movieId),
     rating,
     comment,
-    createdAt: new Date()
+    // createdAt: new Date()
   };
 
   try {
