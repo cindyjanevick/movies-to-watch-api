@@ -80,7 +80,7 @@ const createWatchlist = async (req, res) => {
 // Update an existing watchlist
 const updateWatchlist = async (req, res) => {
   const watchlistId = req.params.id;
-  const { movieId, status, remove } = req.body;
+  const { name, movies } = req.body;
   const userId = req.session.user_id;
 
   // Validate request
@@ -89,17 +89,14 @@ const updateWatchlist = async (req, res) => {
     return res.status(400).json({ error: errors.array() });
   }
 
-  // Validate ObjectId format for movieId
-  if (!ObjectId.isValid(movieId)) {
-    return res.status(400).json({ error: 'Invalid movieId format' });
+  if (!Array.isArray(movies) || movies.length === 0) {
+    return res.status(400).json({ error: 'Movies array is required and cannot be empty' });
   }
-
-  const movieObjectId = new ObjectId(movieId);
 
   try {
     const db = mongodb.getDatabase().db();
 
-    // Find the existing watchlist
+    // Check that the watchlist exists and belongs to the logged-in user
     const existingWatchlist = await db.collection('watchlists').findOne({ _id: new ObjectId(watchlistId) });
 
     if (!existingWatchlist) {
@@ -110,35 +107,35 @@ const updateWatchlist = async (req, res) => {
       return res.status(403).json({ error: 'You can only update your own watchlist' });
     }
 
-    let updateOperation;
+    // Format the movies
+    const formattedMovies = movies.map(movie => {
+      if (!ObjectId.isValid(movie.movieId)) {
+        throw new Error(`Invalid movieId format: ${movie.movieId}`);
+      }
 
-    if (remove) {
-      // Remove the movie from the watchlist's array
-      updateOperation = {
-        $pull: { movies: { movieId: movieObjectId } }
+      return {
+        movieId: new ObjectId(movie.movieId),
+        status: movie.status
       };
-    } else {
-      // Add or update the movie object in the watchlist
-      updateOperation = {
-        $addToSet: {
-          movies: {
-            movieId: movieObjectId,
-            status
-          }
-        }
-      };
-    }
+    });
 
-    const response = await db.collection('watchlists').updateOne(
+    // Update the watchlist entirely (name and movies)
+    const updateResult = await db.collection('watchlists').updateOne(
       { _id: new ObjectId(watchlistId) },
-      updateOperation
+      {
+        $set: {
+          name,
+          movies: formattedMovies
+        }
+      }
     );
 
-    if (response.modifiedCount > 0) {
+    if (updateResult.modifiedCount > 0) {
       res.status(200).json({ message: 'Watchlist updated successfully' });
     } else {
-      res.status(200).json({ message: 'No changes made to the watchlist (movie may already exist or was not found)' });
+      res.status(200).json({ message: 'No changes made (data may be identical)' });
     }
+
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while updating the watchlist', details: error.message });
   }
