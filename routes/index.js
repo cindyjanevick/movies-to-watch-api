@@ -8,6 +8,10 @@ router.use('/movies', require('./movies'));
 
 router.use('/users', require('./users'));
 
+router.use('/watchlists', require('./watchlists'));
+
+router.use('/reviews', require('./reviews'));
+
 router.get('/login', passport.authenticate('github'), (req,res)=>{});
 
 
