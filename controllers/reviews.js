@@ -68,59 +68,52 @@ const createReview = async (req, res) => {
 
 // Update a review
 const updateReview = async (req, res) => {
-  const reviewId = req.params.id;
-  const { user_id, rating, title, comment } = req.body;
+  const reviewId = req.params.id; // The review ID to update
+  const { rating, title, comment, user_id, movieId } = req.body;
 
-  // Validate reviewId and user_id
+  // Validate that the reviewId is a valid MongoDB ObjectId
   if (!ObjectId.isValid(reviewId)) {
     return res.status(400).json({ error: 'Invalid review ID format' });
   }
 
-  if (!ObjectId.isValid(user_id)) {
-    return res.status(400).json({ error: 'Invalid user ID format' });
+  // Find the existing review in the database
+  const existingReview = await mongodb
+    .getDatabase()
+    .db()
+    .collection('reviews')
+    .findOne({ _id: new ObjectId(reviewId) });
+
+  if (!existingReview) {
+    return res.status(404).json({ error: 'Review not found' });
   }
 
+  // Proceed with updating the review
+  const updatedReview = {
+    rating,    // Update rating
+    title,     // Update title
+    comment,   // Update comment
+    user_id: existingReview.user_id,  // Keep original user_id
+    movieId: existingReview.movieId,  // Keep original movieId
+  };
+
   try {
-    const db = mongodb.getDatabase().db();
-    const existingReview = await db
+    // Update the review in the database
+    const response = await mongodb
+      .getDatabase()
+      .db()
       .collection('reviews')
-      .findOne({ _id: new ObjectId(reviewId) });
+      .updateOne({ _id: new ObjectId(reviewId) }, { $set: updatedReview });
 
-    if (!existingReview) {
-      return res.status(404).json({ error: 'Review not found' });
-    }
-
-    // Manual user_id check for authorization
-    if (existingReview.user_id.toString() !== user_id) {
-      return res.status(403).json({ error: 'You can only update your own reviews' });
-    }
-
-    // Prepare updated fields
-    const updatedFields = {
-      rating,
-      title,
-      comment
-    };
-
-    const result = await db
-      .collection('reviews')
-      .updateOne(
-        { _id: new ObjectId(reviewId) },
-        { $set: updatedFields }
-      );
-
-    if (result.modifiedCount === 0) {
-      return res.status(400).json({ error: 'Review update failed or no changes made' });
+    if (response.modifiedCount === 0) {
+      return res.status(400).json({ error: 'Review update failed' });
     }
 
     res.status(200).json({ message: 'Review updated successfully' });
   } catch (error) {
-    res.status(500).json({
-      error: 'An error occurred while updating the review',
-      details: error.message
-    });
+    res.status(500).json({ error: 'An error occurred while updating the review', details: error.message });
   }
 };
+
 
 // Delete a review
 const deleteReview = async (req, res) => {
