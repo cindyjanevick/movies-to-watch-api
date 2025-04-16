@@ -50,7 +50,7 @@ const createReview = async (req, res) => {
       rating,
       title,
       comment,
-      createdAt: new Date()
+      // createdAt: new Date()
     };
 
     const response = await mongodb.getDatabase().db().collection('reviews').insertOne(review);
@@ -68,52 +68,57 @@ const createReview = async (req, res) => {
 
 // Update a review
 const updateReview = async (req, res) => {
-  const reviewId = req.params.id; // The review ID to update
-  const { rating, title, comment } = req.body;
+  const reviewId = req.params.id;
+  const { user_id, rating, title, comment } = req.body;
 
-  // const userId = req.session.user_id;  // Get the logged-in user ID
-
-  // Validate that the reviewId and movieId are MongoDB ObjectIds
+  // Validate reviewId and user_id
   if (!ObjectId.isValid(reviewId)) {
     return res.status(400).json({ error: 'Invalid review ID format' });
   }
 
-  // Find the existing review to check if it belongs to the logged-in user
-  const existingReview = await mongodb
-    .getDatabase()
-    .db()
-    .collection('reviews')
-    .findOne({ _id: new ObjectId(reviewId) });
-
-  if (!existingReview) {
-    return res.status(404).json({ error: 'Review not found' });
+  if (!ObjectId.isValid(user_id)) {
+    return res.status(400).json({ error: 'Invalid user ID format' });
   }
-
-  if (existingReview.user_id.toString() !== userId) {
-    return res.status(403).json({ error: 'You can only update your own reviews' });
-  }
-
-  // Proceed with updating the review
-  const updatedReview = {
-    rating,
-    title,
-    comment,
-  };
 
   try {
-    const response = await mongodb
-      .getDatabase()
-      .db()
+    const db = mongodb.getDatabase().db();
+    const existingReview = await db
       .collection('reviews')
-      .updateOne({ _id: new ObjectId(reviewId) }, { $set: updatedReview });
+      .findOne({ _id: new ObjectId(reviewId) });
 
-    if (response.modifiedCount === 0) {
-      return res.status(400).json({ error: 'Review update failed' });
+    if (!existingReview) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    // Manual user_id check for authorization
+    if (existingReview.user_id.toString() !== user_id) {
+      return res.status(403).json({ error: 'You can only update your own reviews' });
+    }
+
+    // Prepare updated fields
+    const updatedFields = {
+      rating,
+      title,
+      comment
+    };
+
+    const result = await db
+      .collection('reviews')
+      .updateOne(
+        { _id: new ObjectId(reviewId) },
+        { $set: updatedFields }
+      );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({ error: 'Review update failed or no changes made' });
     }
 
     res.status(200).json({ message: 'Review updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while updating the review', details: error.message });
+    res.status(500).json({
+      error: 'An error occurred while updating the review',
+      details: error.message
+    });
   }
 };
 
