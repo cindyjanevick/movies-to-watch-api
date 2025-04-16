@@ -120,7 +120,7 @@ describe("Movies Route", () => {
         const watchlist = response.body[0];
         expect(watchlist).toBeInstanceOf(Object);
         expect(watchlist).not.toBeNull();
-        expect(watchlist).toHaveProperty("user_Id"); // Adjust based on your schema
+        expect(watchlist).toHaveProperty("user_id"); // Adjust based on your schema
         expect(Array.isArray(watchlist.movies)).toBe(true); // Assuming watchlist has a movies array
         expect(response.statusCode).toBe(200);
       });
@@ -128,10 +128,10 @@ describe("Movies Route", () => {
   
     describe("GET a single watchlist by ID", () => {
       it("should return a watchlist by ID", async () => {
-        const watchlistId = "67fee26dd92adb58faf267ea"; // <-- use a real ID
+        const watchlistId = "67fe0b07ea2e7e16c9d4420c"; // <-- use a real ID
         const response = await request(app).get(`/watchlists/${watchlistId}`);
         expect(response.body).toBeInstanceOf(Object);
-        expect(response.body).toHaveProperty("user_Id");
+        expect(response.body).toHaveProperty("user_id");
         expect(response.body).toHaveProperty("movies");
         expect(Array.isArray(response.body.movies)).toBe(true);
         expect(response.statusCode).toBe(200);
