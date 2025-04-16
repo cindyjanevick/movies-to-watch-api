@@ -71,7 +71,7 @@ const updateReview = async (req, res) => {
   const reviewId = req.params.id; // The review ID to update
   const { rating, title, comment } = req.body;
 
-  const userId = req.session.user_id;  // Get the logged-in user ID
+  // const userId = req.session.user_id;  // Get the logged-in user ID
 
   // Validate that the reviewId and movieId are MongoDB ObjectIds
   if (!ObjectId.isValid(reviewId)) {
