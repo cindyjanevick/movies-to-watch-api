@@ -37,86 +37,81 @@ const getSingle = async (req, res) => {
 
 // Create a new review
 const createReview = async (req, res) => {
-  const { movieId, rating, comment } = req.body;
-  const userId = req.session.user_id;
+  const { user_id, movieId, rating, title, comment } = req.body;
 
-  if (!userId || !ObjectId.isValid(userId)) {
-    return res.status(401).json({ error: 'User not authenticated or invalid session ID' });
+  if (!ObjectId.isValid(user_id) || !ObjectId.isValid(movieId)) {
+    return res.status(400).json({ error: 'Invalid user_id or movieId format' });
   }
-
-  if (!movieId || !ObjectId.isValid(movieId)) {
-    return res.status(400).json({ error: 'Invalid or missing movieId' });
-  }
-
-  if (!rating || !comment) {
-    return res.status(400).json({ error: 'Rating and comment are required' });
-  }
-
-  if (typeof rating !== 'number' || rating < 1 || rating > 10) {
-    return res.status(400).json({ error: 'Rating must be a number between 1 and 10' });
-  }
-
-  
-
-
-
-  const review = {
-    user_id: new ObjectId(userId), // Using the user_id from session
-    movieId: new ObjectId(movieId),
-    rating,
-    comment,
-    // createdAt: new Date()
-  };
 
   try {
+    const review = {
+      user_id: new ObjectId(user_id),
+      movieId: new ObjectId(movieId),
+      rating,
+      title,
+      comment,
+      createdAt: new Date()
+    };
+
     const response = await mongodb.getDatabase().db().collection('reviews').insertOne(review);
 
     if (response.acknowledged) {
       res.status(201).json({ message: 'Review created successfully', reviewId: response.insertedId });
     } else {
-      throw new Error('Review creation failed');
+      res.status(500).json({ error: 'Failed to create review' });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'An error occurred while creating the review', details: error.message });
+  } catch (err) {
+    res.status(500).json({ error: 'An error occurred while creating the review', details: err.message });
   }
 };
 
+
 // Update a review
 const updateReview = async (req, res) => {
-  const reviewId = req.params.id;
+  const reviewId = req.params.id; // The review ID to update
+  const { rating, title, comment } = req.body;
 
+  const userId = req.session.user_id;  // Get the logged-in user ID
+
+  // Validate that the reviewId and movieId are MongoDB ObjectIds
   if (!ObjectId.isValid(reviewId)) {
-    return res.status(400).json({ error: 'Invalid Review ID format' });
+    return res.status(400).json({ error: 'Invalid review ID format' });
   }
 
-  const { rating, comment } = req.body;
+  // Find the existing review to check if it belongs to the logged-in user
+  const existingReview = await mongodb
+    .getDatabase()
+    .db()
+    .collection('reviews')
+    .findOne({ _id: new ObjectId(reviewId) });
 
-  // Validate input
-  if (!rating || !comment) {
-    return res.status(400).json({ error: 'Rating and comment are required' });
+  if (!existingReview) {
+    return res.status(404).json({ error: 'Review not found' });
   }
 
-  if (rating < 1 || rating > 10) {
-    return res.status(400).json({ error: 'Rating must be between 1 and 10' });
+  if (existingReview.user_id.toString() !== userId) {
+    return res.status(403).json({ error: 'You can only update your own reviews' });
   }
 
+  // Proceed with updating the review
   const updatedReview = {
     rating,
+    title,
     comment,
-    updatedAt: new Date()
   };
 
   try {
-    const response = await mongodb.getDatabase().db().collection('reviews').updateOne(
-      { _id: new ObjectId(reviewId) },
-      { $set: updatedReview }
-    );
+    const response = await mongodb
+      .getDatabase()
+      .db()
+      .collection('reviews')
+      .updateOne({ _id: new ObjectId(reviewId) }, { $set: updatedReview });
 
-    if (response.modifiedCount > 0) {
-      res.status(200).json({ message: 'Review updated successfully' });
-    } else {
-      res.status(404).json({ error: 'Review not found or no changes made' });
+    if (response.modifiedCount === 0) {
+      return res.status(400).json({ error: 'Review update failed' });
     }
+
+    res.status(200).json({ message: 'Review updated successfully' });
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while updating the review', details: error.message });
   }
