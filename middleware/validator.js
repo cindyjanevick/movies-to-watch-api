@@ -164,6 +164,11 @@ validate.reviewRules = () => {
       .isString()
       .withMessage('Comment must be a string'),
 
+      body('title')
+      .optional()
+      .isString()
+      .withMessage('Title must be a string'),  
+
     body('status')
       .optional()
       .isIn(['watching', 'planToWatch', 'completed'])
