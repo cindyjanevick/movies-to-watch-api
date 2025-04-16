@@ -1,5 +1,5 @@
 const express = require('express');
-const mongodb = require('./data/database');  // This imports the updated database.js
+const mongodb = require('./data/database');
 const app = express();
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
@@ -18,6 +18,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+console.log('CORS middleware triggered');
+
+const port = process.env.PORT || 3000;
 
 // Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -92,17 +96,14 @@ app.get('/github/callback', passport.authenticate('github', { failureRedirect: '
 });
 
 // Initialize MongoDB and start the server
-if (process.env.NODE_ENV !== 'test') {
-  mongodb.connect()
-    .then(() => {
-      app.listen(process.env.PORT || 3000, () => {
-        console.log(`Server listening on port ${process.env.PORT || 3000}! Connected to MongoDB.`);
-      });
-    })
-    .catch((err) => {
-      console.error('Failed to connect to MongoDB:', err);
-      process.exit(1); // Exit the process if connection fails
-    });
-}
+mongodb.initDb((err) => {
+    if (err) {
+        console.log(err);
+    } else {
+        app.listen(port, () => {
+            console.log(`Database is listening and node Running on port ${port}`);
+        });
+    }
+});
 
-module.exports = app;
+module.exports = app
