@@ -5,7 +5,7 @@ Content-Type: application/json
 
 
 ### Get single movie (replace ID with an invalid one, should return 400 or 404)
-GET http://localhost:3000/movies/67ec23822403ed55b2a9833e
+GET http://localhost:3000/movies/67ec23822403ed55b2a98334
 Content-Type: application/json
 
 ### Create a movie (should return 201 Created)
@@ -13,7 +13,7 @@ POST http://localhost:3000/movies
 Content-Type: application/json
 
 {
-  "title": "Parasite",
+  "title": "Parasite 2",
     "genre": "Thriller",
     "releaseYear": 2019,
     "duration": 132,

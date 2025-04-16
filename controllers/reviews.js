@@ -18,7 +18,7 @@ const getSingle = async (req, res) => {
   const reviewId = req.params.id;
 
   if (!ObjectId.isValid(reviewId)) {
-    return res.status(400).json({ error: 'Invalid Review ID format' });
+    return res.status(400).json({ error: 'Invalid review ID format' });
   }
 
   try {

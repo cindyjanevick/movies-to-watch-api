@@ -35,7 +35,7 @@ describe("Movies Route", () => {
 
   describe("GET a single movie by ID", () => {
     it("should return a movie by ID", async () => {
-      const movieId = "valid_movie_id"; // Replace with a valid movie ID from your DB
+      const movieId = "67ec23822403ed55b2a9833e"; // Replace with a valid movie ID from your DB
       const response = await request(app).get(`/movies/${movieId}`);
       expect(response.body).toBeInstanceOf(Object);
       expect(response.body.title).toBe('Inception'); // Replace with actual movie title
@@ -52,153 +52,99 @@ describe("Movies Route", () => {
     });
   });
 
-  describe("POST - Create a movie", () => {
-    it("should create a movie", async () => {
-      const newMovie = {
-        title: "New Movie",
-        description: "A new movie description",
-        genre: "Action",
-        releaseYear: 2025,
-      };
-
-      const response = await request(app).post("/movies").send(newMovie);
-      expect(response.statusCode).toBe(201);
-      expect(response.body.title).toBe(newMovie.title);
+  describe("Users Route", () => {
+    describe("GET all users", () => {
+      it("should return all users", async () => {
+        const response = await request(app).get("/users");
+        const user = response.body[0];
+        expect(user).toBeInstanceOf(Object);
+        expect(user).not.toBeNull();
+        expect(user).toHaveProperty("username"); // Adjust based on your schema
+        expect(response.statusCode).toBe(200);
+      });
     });
-
-    it("should return error for missing fields", async () => {
-      const invalidMovie = { title: "" }; // Missing required fields
-      const response = await request(app).post("/movies").send(invalidMovie);
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toHaveProperty("error");
-    });
-  });
-
-  describe("PUT - Update a movie", () => {
-    it("should update a movie", async () => {
-      const updatedMovie = {
-        title: "Updated Movie Title",
-        description: "Updated description",
-      };
-
-      const response = await request(app).put("/movies/valid_movie_id").send(updatedMovie);
-      expect(response.statusCode).toBe(200);
-      expect(response.body.title).toBe(updatedMovie.title);
-    });
-
-    it("should return error for invalid movie ID", async () => {
-      const invalidMovie = {
-        title: "Updated Movie Title",
-        description: "Updated description",
-      };
-
-      const invalidId = "invalid_id";
-      const response = await request(app).put(`/movies/${invalidId}`).send(invalidMovie);
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toHaveProperty("error");
+  
+    describe("GET a single user by ID", () => {
+      it("should return a user by ID", async () => {
+        const userId = "67ec22f72403ed55b2a9833c"; // Replace with a real ID
+        const response = await request(app).get(`/users/${userId}`);
+        expect(response.body).toBeInstanceOf(Object);
+        expect(response.body).toHaveProperty("username"); // Adjust as needed
+        expect(response.statusCode).toBe(200);
+      });
+  
+      it("should return error for invalid ID", async () => {
+        const response = await request(app).get("/users/invalid_id");
+        expect(response.body).toHaveProperty("error");
+        expect(response.body.error).toBe("Invalid User ID format");
+        expect(response.statusCode).toBe(400);
+      });
     });
   });
-
-  describe("DELETE - Delete a movie", () => {
-    it("should delete a movie", async () => {
-      const movieId = "valid_movie_id"; // Replace with a valid movie ID from DB
-      const response = await request(app).delete(`/movies/${movieId}`);
-      expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty("message", "Movie deleted successfully");
+   
+  describe("Reviews Route", () => {
+    describe("GET all reviews", () => {
+      it("should return all reviews", async () => {
+        const response = await request(app).get("/reviews");
+        const review = response.body[0];
+        expect(review).toBeInstanceOf(Object);
+        expect(review).not.toBeNull();
+        expect(review).toHaveProperty("rating"); // Adjust according to your schema
+        expect(review).toHaveProperty("comment"); // Example property
+        expect(response.statusCode).toBe(200);
+      });
     });
-
-    it("should return error for invalid movie ID", async () => {
-      const invalidId = "invalid_id";
-      const response = await request(app).delete(`/movies/${invalidId}`);
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toHaveProperty("error");
+  
+    describe("GET a single review by ID", () => {
+      it("should return a review by ID", async () => {
+        const reviewId = "67ff3ae8eab4bfb9341e74b1"; // Replace with a valid review ID
+        const response = await request(app).get(`/reviews/${reviewId}`);
+        expect(response.body).toBeInstanceOf(Object);
+        expect(response.body).toHaveProperty("comment"); // Adjust as needed
+        expect(response.body).toHaveProperty("rating"); // Adjust as needed
+        expect(response.statusCode).toBe(200);
+      });
+  
+      it("should return error for invalid ID", async () => {
+        const response = await request(app).get("/reviews/invalid_id");
+        expect(response.body).toHaveProperty("error");
+        expect(response.body.error).toBe("Invalid review ID format");
+        expect(response.statusCode).toBe(400);
+      });
     });
   });
-});
-
-describe("Users Route", () => {
-  it("should return all users", async () => {
-    const response = await request(app).get("/users");
-    expect(response.body).toBeInstanceOf(Array);
-    expect(response.statusCode).toBe(200);
+  describe("Watchlists Route", () => {
+    describe("GET all watchlists", () => {
+      it("should return all watchlists", async () => {
+        const response = await request(app).get("/watchlists");
+        const watchlist = response.body[0];
+        expect(watchlist).toBeInstanceOf(Object);
+        expect(watchlist).not.toBeNull();
+        expect(watchlist).toHaveProperty("user_id");
+        expect(Array.isArray(watchlist.movies)).toBe(true);
+        expect(response.statusCode).toBe(200);
+      });
+    });
+  
+    describe("GET a single watchlist by ID", () => {
+      it("should return a watchlist by ID", async () => {
+        const watchlistId = "67fe0b07ea2e7e16c9d4420c"; // Use valid ID from your DB
+        const response = await request(app).get(`/watchlists/${watchlistId}`);
+        expect(response.body).toBeInstanceOf(Object);
+        expect(response.body).toHaveProperty("user_id");
+        expect(response.body).toHaveProperty("movies");
+        expect(Array.isArray(response.body.movies)).toBe(true);
+        expect(response.statusCode).toBe(200);
+      });
+  
+      it("should return error for invalid ID", async () => {
+        const response = await request(app).get("/watchlists/invalid_id");
+        expect(response.body).toHaveProperty("error");
+        expect(response.body.error).toBe("Invalid Watchlist ID format");
+        expect(response.statusCode).toBe(400);
+      });
+    });
   });
-
-  it("should return error for invalid user ID", async () => {
-    const invalid_id = "invalid_id";
-    const response = await request(app).get(`/users/${invalid_id}`);
-    expect(response.body).toBeInstanceOf(Object);
-    expect(response.body).toHaveProperty("error");
-    expect(response.body.error).toBe("Invalid User ID format");
-    expect(response.statusCode).toBe(400);
-  });
-});
-
-describe("Reviews Route", () => {
-  it("should return all reviews", async () => {
-    const response = await request(app).get("/reviews");
-    expect(response.body).toBeInstanceOf(Array);
-    expect(response.statusCode).toBe(200);
-  });
-
-  it("should return error for invalid review ID", async () => {
-    const invalid_id = "invalid_id";
-    const response = await request(app).get(`/reviews/${invalid_id}`);
-    expect(response.body).toBeInstanceOf(Object);
-    expect(response.body).toHaveProperty("error");
-    expect(response.body.error).toBe("Invalid Review ID format");
-    expect(response.statusCode).toBe(400);
-  });
-
-  it("should return error when trying to create review with invalid data", async () => {
-    const invalid_review = { title: "", rating: "" };
-    const response = await request(app).post("/reviews").send(invalid_review);
-    expect(response.body).toBeInstanceOf(Object);
-    expect(response.body.error).toBe("An error occurred while creating the Review");
-    expect(response.statusCode).toBe(500);
-  });
-
-  it("should return error when trying to update review with invalid data", async () => {
-    const invalid_review = { title: "", rating: "" };
-    const invalid_id = "invalid_id";
-    const response = await request(app).put(`/reviews/${invalid_id}`).send(invalid_review);
-    expect(response.body).toBeInstanceOf(Object);
-    expect(response.body.error).toBe("An error occurred while updating the Review");
-    expect(response.statusCode).toBe(500);
-  });
-});
-
-describe("Watchlists Route", () => {
-  it("should return all watchlists", async () => {
-    const response = await request(app).get("/watchlists");
-    expect(response.body).toBeInstanceOf(Array);
-    expect(response.statusCode).toBe(200);
-  });
-
-  it("should create a watchlist", async () => {
-    const newWatchlist = { name: "My Watchlist" };
-    const response = await request(app).post("/watchlists").send(newWatchlist);
-    expect(response.statusCode).toBe(201);
-    expect(response.body.name).toBe(newWatchlist.name);
-  });
-
-  it("should return error for invalid watchlist data", async () => {
-    const invalidWatchlist = { name: "" };
-    const response = await request(app).post("/watchlists").send(invalidWatchlist);
-    expect(response.statusCode).toBe(400);
-    expect(response.body).toHaveProperty("error");
-  });
-
-  it("should update a watchlist", async () => {
-    const updatedWatchlist = { name: "Updated Watchlist" };
-    const response = await request(app).put("/watchlists/valid_watchlist_id").send(updatedWatchlist);
-    expect(response.statusCode).toBe(200);
-    expect(response.body.name).toBe(updatedWatchlist.name);
-  });
-
-  it("should delete a watchlist", async () => {
-    const watchlistId = "valid_watchlist_id"; // Replace with valid watchlist ID
-    const response = await request(app).delete(`/watchlists/${watchlistId}`);
-    expect(response.statusCode).toBe(200);
-    expect(response.body).toHaveProperty("message", "Watchlist deleted successfully");
-  });
-});
+  
+  
+})

@@ -96,12 +96,18 @@ app.get('/github/callback', passport.authenticate('github', { failureRedirect: '
 });
 
 // Initialize MongoDB and start the server
-mongodb.initDb((err) => {
+// Connect to MongoDB and start the server
+if (process.env.NODE_ENV !== 'test') {
+  mongodb.connect((err) => {
     if (err) {
-        console.log(err);
+      console.error('Failed to connect to MongoDB:', err);
+      process.exit(1); // Exit the process if connection fails
     } else {
-        app.listen(port, () => {
-            console.log(`Database is listening and node Running on port ${port}`);
-        });
+      app.listen(PORT, () => {
+        console.log(`Server listening on port ${PORT}! Connected to MongoDB.`);
+      });
     }
-});
+  });
+}
+
+module.exports = app;
